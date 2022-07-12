@@ -1,0 +1,13 @@
+diff --git a/haskell-language-server.cabal b/haskell-language-server.cabal
+index 970bb6b..1a08d04 100644
+--- a/haskell-language-server.cabal
++++ b/haskell-language-server.cabal
+@@ -388,7 +388,7 @@ executable haskell-language-server
+     -- disable idle GC
+     -- increase nursery size
+     -- Enable collection of heap statistics
+-    "-with-rtsopts=-I0 -A128M -T"
++    "-with-rtsopts=--nonmoving-gc -I0 -A128M -T"
+     -Wno-unticked-promoted-constructors
+   if flag(pedantic)
+     ghc-options: -Werror

@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  - push
+  - pull_request
+
+jobs:
+
+  ci:
+    name: ci-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - macos-12
+    steps:
+
+      - name: setup-nix
+        uses: cachix/install-nix-action@v17
+        with:
+          extra_nix_config: |
+            max-jobs = 1
+            substituters = https://cache.nixos.org https://cache.iog.io
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
+
+      - name: setup-cachix
+        uses: cachix/cachix-action@master
+        with:
+          name: tweag-wasm
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachixArgs: -c9 -j3
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: ci
+        run: |
+          nix build --json --keep-going --no-link
+
+          NIX_PATH=nixpkgs=$(nix flake archive --json | jq -r '.inputs | .["haskell-nix"] | .inputs | .["nixpkgs-unstable"] | .path') nix-shell --pure --argstr buildDepends "" --run "ghc-pkg list"
